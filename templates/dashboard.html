@@ -1,59 +1,90 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Illinois Map</title>
-
-    <!-- Leaflet CSS -->
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Illinois Map</title>
+  <!-- Leaflet CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
     integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
     crossorigin=""/>
-    
-    <!-- Leaflet JS -->
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+  <!-- Leaflet JS -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
     integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
     crossorigin=""></script>
-    
-    <style>
-        #map { height: 700px; width: 90%; }
-        #controls { margin-bottom: 10px; }
-    </style>
+  <style>
+    #map { height: 700px; width: 90%; }
+    #controls { margin-bottom: 10px; }
+  </style>
 </head>
 <body>
+  <h2>Illinois Map</h2>
+  <div id="controls">
+      <button id="addMarkerBtn">Add Marker</button>
+      <button id="deleteMarkerBtn">Delete My Marker</button>
+  </div>
+  <div id="map"></div>
+  <script>
+  
+    var currentTruckId = {{truck_id}};
+    var map = L.map('map').setView([41.7508, -88.1535], 16);
 
-    <h2>Illinois Map</h2>
-    <div id="controls">
-        <button id="addMarkerBtn">Add Marker</button>
-    </div>
-    <div id="map"></div>
+    // Load OpenStreetMap tiles
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; OpenStreetMap contributors'
+    }).addTo(map);
 
-    <script>
-        var map = L.map('map').setView([41.7508, -88.1535], 16);
+    // Layer group for markers
+    var markersLayer = L.layerGroup().addTo(map);
+
+    // Function to load markers from the server
+    function loadMarkers() {
+      fetch('/api/get_markers')
+        .then(response => response.json())
+        .then(data => {
         
-        // Load OpenStreetMap tiles
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '&copy; OpenStreetMap contributors'
-        }).addTo(map);
-
-        var marker = L.marker([41.7508, -88.1535]).addTo(map);
-        marker.bindPopup("<b>Skibidi Truck</b><br>Poop.").openPopup();
-
-        var markerMode = false;
-
-        document.getElementById("addMarkerBtn").addEventListener("click", function () {
-            markerMode = true;
-            alert("Click on the map to place a marker.");
-        });
-
-        map.on("click", function (e) {
-            if (markerMode) {
-                L.marker(e.latlng).addTo(map)
-                    .bindPopup("New Marker").openPopup();
-                markerMode = false; // Disable marker mode after placing one marker
+          data.forEach(function(marker) {
+            var popupText = marker.id;
+            if (marker.id === currentTruckId) {
+              popupText += " (You)";
             }
+            L.marker([marker.lat, marker.lng]).addTo(markersLayer)
+              .bindPopup(popupText)
+              
+          });
         });
-    </script>
+    }
+    loadMarkers();
 
+    document.getElementById("addMarkerBtn").addEventListener("click", function () {
+      alert("Click on the map to place/update your marker.");
+      map.once("click", function (e) {
+   
+        var lat = e.latlng.lat;
+        var lng = e.latlng.lng;
+        fetch('/api/update_marker', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({latitude: lat, longitude: lng})
+        })
+        .then(response => response.json())
+        .then(data => {
+          if(data.success) {
+            userMarker = L.marker([lat, lng])
+              .addTo(markersLayer)
+              .bindPopup("Your Marker ({{truck_id}})")
+              .openPopup();
+           
+         
+          }
+        });
+      });
+    });
+
+    
+   
+  </script>
 </body>
 </html>
