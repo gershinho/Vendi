@@ -9,11 +9,17 @@ truckdb.init_db()
 
 app.secret_key = 'gersh'
 
+@app.route('/foodie_map', methods=['GET', 'POST'])
+def foodie_map():
+    return render_template('dashboard_foodie.html')
+
 @app.route('/login', methods=['GET', 'POST'])
 def truck_login():
     if request.method == 'POST':
         email = request.form['email']
+        print(email)
         password = request.form['password']
+        print(password)
         
         # Retrieve truck record by email
         existing_truck = truckdb.get_truck_by_email(email)
@@ -62,7 +68,7 @@ def map():
     if 'truck_id' not in session:
         return redirect(url_for('truck_register'))
     truck_data = truckdb.get_truck_by_id(session['truck_id'])
-    return render_template('dashboard.html', truck_id=session['truck_id'], name = truck_data[1], hours= truck_data[4])
+    return render_template('dashboard.html', truck_id=session['truck_id'], name = truck_data[1], hours= truck_data[4],cuisine = truck_data[2], number = truck_data[3], email = truck_data[5] )
 
 @app.route('/api/update_marker', methods=['POST'])
 def update_marker():

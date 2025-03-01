@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Food Trucks Near You</title>
+  <!-- Leaflet CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+  <!-- Leaflet JS -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+    integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='output.css') }}">
+  <style>
+    /* The map container fills the available width and height */
+    #map {
+      width: 100%;
+      height: calc(90vh - 4rem); /* Adjust as needed */
+    }
+  </style>
+</head>
+<body class="bg-yellow-50">
+  <!-- Header -->
+  <header class="bg-red-700 text-white p-4 flex justify-between items-center font-bold text-xl">
+    <img src="/static/img/Vendi_logo_sml (1).png" class="h-6 w-auto">
+    <span>Food Trucks Near You</span>
+  </header>
+
+  <!-- Map Container -->
+  <div class="mx-5 mt-5 mb-5">
+    <div id="map" class="rounded-3xl overflow-hidden"></div>
+  </div>
+
+  <script>
+    // Initialize the map
+    var map = L.map('map').setView([41.7508, -88.1535], 16);
+
+    // Load OpenStreetMap tiles
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; OpenStreetMap contributors'
+    }).addTo(map);
+
+    // Layer group for food truck markers
+    var markersLayer = L.layerGroup().addTo(map);
+
+    // Load markers and bind popups
+    function loadMarkers() {
+      fetch('/api/get_markers')
+        .then(response => response.json())
+        .then(data => {
+          markersLayer.clearLayers();
+          data.forEach(function(marker) {
+            var popupContent = "Name: " + marker.name + "<br>Hours: " + marker.hours;
+            L.marker([marker.lat, marker.lng]).addTo(markersLayer)
+              .bindPopup(popupContent);
+          });
+        });
+    }
+
+    // Initial load of markers
+    loadMarkers();
+  </script>
+</body>
+</html>
