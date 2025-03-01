@@ -16,25 +16,43 @@
     crossorigin=""></script>
     
     <style>
-        
         #map { height: 700px; width: 90%; }
+        #controls { margin-bottom: 10px; }
     </style>
 </head>
 <body>
 
     <h2>Illinois Map</h2>
-    <div id="map"></div> <!-- Fixed closing tag -->
+    <div id="controls">
+        <button id="addMarkerBtn">Add Marker</button>
+    </div>
+    <div id="map"></div>
 
-    <!-- JavaScript to initialize the map -->
     <script>
-        
         var map = L.map('map').setView([41.7508, -88.1535], 16);
-        var marker = L.marker([41.7508, -88.1535]).addTo(map);
-        marker.bindPopup("<b>Skibidi Truck</b><br>Poop.").openPopup();
+        
         // Load OpenStreetMap tiles
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             attribution: '&copy; OpenStreetMap contributors'
         }).addTo(map);
+
+        var marker = L.marker([41.7508, -88.1535]).addTo(map);
+        marker.bindPopup("<b>Skibidi Truck</b><br>Poop.").openPopup();
+
+        var markerMode = false;
+
+        document.getElementById("addMarkerBtn").addEventListener("click", function () {
+            markerMode = true;
+            alert("Click on the map to place a marker.");
+        });
+
+        map.on("click", function (e) {
+            if (markerMode) {
+                L.marker(e.latlng).addTo(map)
+                    .bindPopup("New Marker").openPopup();
+                markerMode = false; // Disable marker mode after placing one marker
+            }
+        });
     </script>
 
 </body>
