@@ -1,33 +1,240 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Food Truck Registration</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Food Truck Registration</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='output.css') }}">
+
+  <style>
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes pulse {
+      0% {
+        box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.4);
+      }
+
+      70% {
+        box-shadow: 0 0 0 10px rgba(220, 38, 38, 0);
+      }
+
+      100% {
+        box-shadow: 0 0 0 0 rgba(220, 38, 38, 0);
+      }
+    }
+
+    @keyframes bounce {
+      0%,
+      100% {
+        transform: translateY(0);
+      }
+
+      50% {
+        transform: translateY(-5px);
+      }
+    }
+
+    /* Background animation for darker red circles */
+    .bg-animation {
+      z-index: -1;
+      background-image: radial-gradient(circle, #7f1d1d 30%, transparent 30%);
+      background-size: 100px 100px;
+      animation: moveBackground 20s linear infinite;
+      opacity: 0.3;
+    }
+
+    @keyframes moveBackground {
+      from {
+        background-position: 0 0;
+      }
+
+      to {
+        background-position: 100px 100px;
+      }
+    }
+
+    .animate-input {
+      transition: all 0.3s ease;
+    }
+
+    .animate-input:focus {
+      transform: scale(1.02);
+      box-shadow: 0 0 15px rgba(254, 252, 232, 0.5);
+    }
+
+    .form-group {
+      opacity: 0;
+      animation: fadeIn 0.5s forwards;
+    }
+
+    .form-group:nth-child(1) {
+      animation-delay: 0.1s;
+    }
+
+    .form-group:nth-child(2) {
+      animation-delay: 0.2s;
+    }
+
+    .form-group:nth-child(3) {
+      animation-delay: 0.3s;
+    }
+
+    .form-group:nth-child(4) {
+      animation-delay: 0.4s;
+    }
+
+    .form-group:nth-child(5) {
+      animation-delay: 0.5s;
+    }
+
+    .form-group:nth-child(6) {
+      animation-delay: 0.6s;
+    }
+
+    .form-group:nth-child(7) {
+      animation-delay: 0.7s;
+    }
+
+    .submit-btn {
+      transition: all 0.3s ease;
+    }
+
+    .submit-btn:hover {
+      animation: bounce 0.5s ease infinite;
+    }
+
+    .label-animate {
+      transition: all 0.3s ease;
+    }
+
+    .animate-input:focus+.label-animate,
+    .animate-input:hover+.label-animate {
+      color: #FEFCE8;
+      transform: translateX(5px);
+    }
+
+    .form-content {
+      overflow-y: auto;
+      flex-grow: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      height: 100%;
+    }
+
+    .button-container {
+      padding-top: 1rem;
+      padding-bottom: 1rem;
+      margin-top: auto;
+    }
+  </style>
 </head>
-<body>
 
-    <h2>Food Truck Registration</h2>
-    
-    <form action="/register_truck" method="post">
-        <label for="foodTruckName">Food Truck Name:</label>
-        <input type="text" id="foodTruckName" name="foodTruckName" required><br><br>
-    
-        <label for="cuisineType">Cuisine Type:</label>
-        <select id="cuisineType" name="cuisineType">
-            <option value="American">American</option>
-            <option value="Mexican">Mexican</option>
-        </select><br><br>
-    
-        <label for="phoneNumber">Phone Number:</label>
-        <input type="tel" id="phoneNumber" name="phoneNumber" required><br><br>
-    
-        <label for="operatingHours">Operating Hours:</label>
-        <input type="text" id="operatingHours" name="operatingHours" required><br><br>
-    
-        <button type="submit">Register</button>
-    </form>
-    
+<body class="bg-red-700 flex relative overflow-hidden">
+  <!-- Animated Background -->
+  <div class="bg-animation absolute inset-0 pointer-events-none"></div>
 
+  <!-- Left Section (Yellow Form) -->
+  <div class="bg-yellow-50 w-3/4 h-screen p-7 relative" style="border-top-right-radius: 5rem; border-bottom-right-radius: 5rem;">
+    <div class="flex items-center justify-center py-8 text-red-700">
+      <p class="font-bold" style="font-size: 4.5rem; line-height: 2.5rem;"> Register your Truck!</p>
+    </div>
+
+    <div class="p-7 bg-red-700" style="border-radius: 5rem; height: calc(100% - 9rem); display: flex; flex-direction: column;">
+      <form action="/register_truck" method="post" class="flex flex-col h-full">
+        <div class="form-content">
+          <div class="form-group flex items-center justify-center mb-0 pt-4">
+            <input type="text" id="foodTruckName" name="foodTruckName" placeholder="Truck Name:" class="animate-input font-bold text-red-700 text-center bg-yellow-50 placeholder-grey-50 rounded-full p-3 focus:ring-2 focus:ring-red-700" required>
+          </div>
+
+          <div class="form-group mb-0 pt-4">
+            <label for="email" class="block mb-1 text-yellow-50 label-animate">Email:</label>
+            <input type="email" id="email" name="email" class="animate-input w-1/2 p-3 bg-yellow-50 placeholder-grey-50 rounded-full focus:ring-2 focus:ring-red-700" required>
+          </div>
+
+          <div class="form-group mb-0 pt-4">
+            <label for="password" class="block mb-1 text-yellow-50 label-animate">Password:</label>
+            <input type="password" id="password" name="password" class="animate-input w-1/2 p-3 bg-yellow-50 placeholder-grey-50 rounded-full focus:ring-2 focus:ring-red-700" required>
+          </div>
+
+          <div class="form-group mb-0 pt-4">
+            <label for="phoneNumber" class="block mb-1 text-yellow-50 label-animate">Phone Number:</label>
+            <input type="tel" id="phoneNumber" name="phoneNumber" class="animate-input w-1/2 p-3 bg-yellow-50 placeholder-grey-50 rounded-full focus:ring-2 focus:ring-red-700" required>
+          </div>
+
+          <div class="form-group mb-0 pt-4">
+            <label for="operatingHours" class="block mb-1 text-yellow-50 label-animate">Operating Hours:</label>
+            <input type="text" id="operatingHours" name="operatingHours" class="animate-input w-1/2 text-red-700 bg-yellow-50 placeholder-grey-50 rounded-full p-3 focus:ring-2 focus:ring-red-700" required>
+          </div>
+
+          <div class="form-group mb-0 pt-4">
+            <label for="cuisineType" class="block mb-1 text-yellow-50 label-animate">Cuisine Type:</label>
+            <select id="cuisineType" name="cuisineType" class="animate-input w-1/2 text-red-700 bg-yellow-50 placeholder-grey-50 rounded-full p-3 focus:ring-2 focus:ring-red-700">
+              <option value="American">American</option>
+              <option value="Mexican">Mexican</option>
+              <option value="Italian">Italian</option>
+              <option value="Chinese">Chinese</option>
+              <option value="Indian">Indian</option>
+              <option value="Japanese">Japanese</option>
+              <option value="Thai">Thai</option>
+              <option value="French">French</option>
+              <option value="Greek">Greek</option>
+              <option value="Korean">Korean</option>
+              <option value="Vietnamese">Vietnamese</option>
+              <option value="Spanish">Spanish</option>
+              <option value="Mediterranean">Mediterranean</option>
+              <option value="Turkish">Turkish</option>
+              <option value="Brazilian">Brazilian</option>
+              <option value="Ethiopian">Ethiopian</option>
+              <option value="Lebanese">Lebanese</option>
+              <option value="Filipino">Filipino</option>
+              <option value="Peruvian">Peruvian</option>
+              <option value="German">German</option>
+              <option value="Caribbean">Caribbean</option>
+              <option value="Cajun">Cajun</option>
+              <option value="Argentinian">Argentinian</option>
+              <option value="Russian">Russian</option>
+              <option value="Moroccan">Moroccan</option>
+              <option value="Pakistani">Pakistani</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="button-container form-group text-center pt-4">
+          <button type="submit" class="submit-btn bg-yellow-50 text-red-700 font-bold rounded-full py-2 px-6 hover:bg-yellow-100 focus:outline-none focus:ring-2 focus:ring-yellow-50">Register</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Right Section (Food Truck Image, Centered in Red Space) -->
+  <div class="flex justify-center items-center w-1/4 h-screen">
+    <img src="/static/img/foodtruck.png" alt="Food Truck" class="w-64 animate-fadeIn" />
+  </div>
+
+  <script>
+    document.querySelectorAll('.animate-input').forEach(input => {
+      input.addEventListener('focus', function () {
+        this.style.animation = 'pulse 2s infinite';
+      });
+
+      input.addEventListener('blur', function () {
+        this.style.animation = '';
+      });
+    });
+  </script>
 </body>
+
 </html>
