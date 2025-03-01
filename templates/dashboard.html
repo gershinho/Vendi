@@ -1,41 +1,199 @@
 <!DOCTYPE html>
+
 <html lang="en">
+
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Illinois Map</title>
 
-    <!-- Leaflet CSS -->
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-    integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
-    crossorigin=""/>
-    
-    <!-- Leaflet JS -->
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
-    integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
-    crossorigin=""></script>
-    
-    <style>
-        
-        #map { height: 700px; width: 90%; }
-    </style>
+  <meta charset="UTF-8" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <title>Vendi Dashboard</title>
+
+  <!-- Leaflet CSS -->
+
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+
+    integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+
+  <!-- Leaflet JS -->
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+
+    integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+
+  <link rel="stylesheet" href="{{ url_for('static', filename='output.css') }}">
+
+  <style>
+
+    /* The map will fill the width of its container */
+
+    #map {
+
+      width: 100%;
+
+    }
+
+  </style>
+
 </head>
-<body>
 
-    <h2>Illinois Map</h2>
-    <div id="map"></div> <!-- Fixed closing tag -->
+<body class="bg-yellow-50">
 
-    <!-- JavaScript to initialize the map -->
-    <script>
-        
-        var map = L.map('map').setView([41.7508, -88.1535], 16);
-        var marker = L.marker([41.7508, -88.1535]).addTo(map);
-        marker.bindPopup("<b>Skibidi Truck</b><br>Poop.").openPopup();
-        // Load OpenStreetMap tiles
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '&copy; OpenStreetMap contributors'
-        }).addTo(map);
-    </script>
+  <!-- Generic Red-700 Header -->
 
+  <header class="bg-red-700 text-white p-4 flex justify-between font-bold text-xl">
+
+    <img src="/static/img/Vendi_logo_sml (1).png" class="h-6 w-auto">
+
+  </header>
+
+  
+
+
+
+  <!-- Outer Flex Container: 90% of viewport height -->
+
+  <div class="flex justify-between items-end mx-5 mt-5 mb-5" style="height:90vh;">
+
+    <div id="infoBlock" class="bg-red-700 p-4 rounded-3xl h-full w-1/3 mx-5 flex flex-col items-center">
+      <p class="text-yellow-50 font-bold text-5xl mb-4">
+        {{foodTruckName}}
+      </p>
+      <div class="bg-yellow-50 text-red-700 rounded-3xl p-7 w-full text-center">
+        <p class="text-xl font-semibold mb-2">Number: {{number}}</p>
+        <p class="text-xl font-semibold mb-2">Email: {{email}}</p>
+        <p class="text-xl font-semibold mb-2">Cuisine: {{cuisine}}</p>
+        <p class="text-xl font-semibold mb-2">Hours: {{hours}}</p>
+        <p class="text-xl font-semibold">Visitors Today:</p>
+      </div>
+      <button id="editBtn" class="text-red-700 font-bold flex items-center justify-center text-center bg-yellow-50 mt-4 w-1/2 hover:bg-yellow-100 focus:outline-none focus:ring-2 focus:ring-yellow-50 rounded-full h-10">
+        Edit
+      </button>
+    </div>
+
+      
+
+
+
+    <!-- Right Container (70% width, full height, flex column) -->
+
+    <div class="flex flex-col h-full p-4" style="width:70%;">
+
+      <!-- Header Text -->
+
+      <div>
+
+        <p class="font-bold text-red-700 text-2xl">Where will you be?</p>
+
+      </div>
+
+      <!-- Map and Controls Area: flex column to ensure the button remains visible -->
+
+      <div class="flex flex-col flex-grow mt-2 bg-red-700 p-6" style="border-radius:5rem; overflow:hidden;">
+
+        <!-- Map container fills available space -->
+
+        <div id="map" class="flex-grow p-5" style="border-radius:5rem; overflow:hidden;"></div>
+
+        <!-- Controls container remains at its natural height -->
+
+        <div id="controls" class="p-4">
+
+          <button class="bg-yellow-50 text-red-700 font-bold rounded-full py-2 px-6 
+
+                         hover:bg-yellow-100 focus:outline-none focus:ring-2 focus:ring-yellow-50"
+
+                  id="addMarkerBtn">Add/Change Location</button>
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+
+
+  <script>
+
+    var currentTruckId = {{ truck_id }};
+
+    var map = L.map('map').setView([41.7508, -88.1535], 16);
+
+
+
+    // Load OpenStreetMap tiles
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+
+      attribution: '&copy; OpenStreetMap contributors'
+
+    }).addTo(map);
+    // Layer group for markers
+    var markersLayer = L.layerGroup().addTo(map);
+  
+    // Track the user marker globally
+    var userMarker = null;
+  
+    function loadMarkers() {
+      fetch('/api/get_markers')
+        .then(response => response.json())
+        .then(data => {
+          // Optionally, clear the markersLayer first:
+          markersLayer.clearLayers();
+          data.forEach(function(marker) {
+            var popupContent = "Name: " + marker.name + "<br>Hours: " + marker.hours;
+            if (marker.id == currentTruckId) {
+              // For the current truck, assign the marker to userMarker so that future updates modify the existing one.
+              userMarker = L.marker([marker.lat, marker.lng]).addTo(markersLayer)
+                            .bindPopup(popupContent);
+            } else {
+              L.marker([marker.lat, marker.lng]).addTo(markersLayer)
+                            .bindPopup(popupContent);
+            }
+          });
+        });
+    }
+  
+    loadMarkers();
+  
+    document.getElementById("addMarkerBtn").addEventListener("click", function () {
+      alert("Click on the map to place/update your marker.");
+      map.once("click", function (e) {
+        var lat = e.latlng.lat;
+        var lng = e.latlng.lng;
+  
+        // If userMarker already exists, update its position; otherwise, create a new one.
+        if (userMarker) {
+          userMarker.setLatLng([lat, lng]);
+        } else {
+          var popupContent = "Name: " + "{{name}}" + "<br>Hours: " + "{{hours}}";
+          userMarker = L.marker([lat, lng]).addTo(markersLayer)
+            .bindPopup(popupContent)
+            .openPopup();
+        }
+  
+        // Update the marker location on the server
+        fetch('/api/update_marker', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({latitude: lat, longitude: lng})
+        })
+        .then(response => response.json())
+        .then(data => {
+          if (data.success) {
+            console.log("Marker location updated successfully.");
+          }
+        });
+      });
+    });
+  </script>
+  
 </body>
 </html>
