@@ -96,6 +96,7 @@ def get_markers():
             markers.append({
                 "id": t[0],
                 "name": t[1],
+                "cuisine": t[2],
                 "lat": t[7],
                 "lng": t[8],
                 "hours": t[4]

@@ -22,44 +22,117 @@
 </head>
 <body class="bg-yellow-50">
   <!-- Header -->
+  <!-- Header -->
   <header class="bg-red-700 text-white p-4 flex justify-between items-center font-bold text-xl">
-    <img src="/static/img/Vendi_logo_sml (1).png" class="h-6 w-auto">
-    <span>Food Trucks Near You</span>
-  </header>
+    <!-- Home Button -->
+    <a href="/">
+      <img src="/static/img/home.png" class="h-8 w-auto transition-transform transform hover:scale-110">
+    </a>
 
-  <!-- Map Container -->
-  <div class="mx-5 mt-5 mb-5">
-    <div id="map" class="rounded-3xl overflow-hidden"></div>
+    <!-- Logo -->
+    <img src="/static/img/Vendi_logo_sml (1).png" class="h-6 w-auto">
+  </header>
+  
+  <!-- Main Content: Map and Filter Sidebar -->
+    <div class="mx-5 mt-5 mb-5 content-wrapper flex gap-4">
+        <!-- Map Container -->
+        <div id="map" class="w-3/4 rounded-3xl overflow-hidden"></div>
+   <!-- Filter Sidebar -->
+<div class="w-1/4 bg-red-700 p-5 rounded-3xl transform transition-transform duration-500 ease-in-out translate-x-0 opacity-100 animate-fadeIn">
+  <h2 class="text-yellow-50 text-2xl font-bold mb-4">Filter Food Trucks</h2>
+
+  <!-- Cuisine Selection -->
+  <div class="mb-4">
+    <label for="cuisine" class="block mb-2 text-lg font-semibold text-yellow-50">Cuisine Type</label>
+    <select id="cuisine" class="w-full p-2 border border-yellow-50 rounded-lg bg-red-600 text-yellow-50 focus:ring-2 focus:ring-yellow-300 focus:outline-none transition-all duration-300">
+      <option value="">All</option>
+      <option value="American">American</option>
+      <option value="Mexican">Mexican</option>
+      <option value="Italian">Italian</option>
+      <option value="Chinese">Chinese</option>
+      <option value="Indian">Indian</option>
+      <option value="Japanese">Japanese</option>
+      <option value="Thai">Thai</option>
+      <option value="French">French</option>
+      <option value="Greek">Greek</option>
+      <option value="Korean">Korean</option>
+      <option value="Vietnamese">Vietnamese</option>
+      <option value="Spanish">Spanish</option>
+      <option value="Mediterranean">Mediterranean</option>
+      <option value="Turkish">Turkish</option>
+      <option value="Brazilian">Brazilian</option>
+      <option value="Ethiopian">Ethiopian</option>
+      <option value="Lebanese">Lebanese</option>
+      <option value="Filipino">Filipino</option>
+      <option value="Peruvian">Peruvian</option>
+      <option value="German">German</option>
+      <option value="Caribbean">Caribbean</option>
+      <option value="Cajun">Cajun</option>
+      <option value="Argentinian">Argentinian</option>
+      <option value="Russian">Russian</option>
+      <option value="Moroccan">Moroccan</option>
+      <option value="Pakistani">Pakistani</option>
+    </select>
   </div>
 
-  <script>
-    // Initialize the map
-    var map = L.map('map').setView([41.7508, -88.1535], 16);
-
-    // Load OpenStreetMap tiles
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: '&copy; OpenStreetMap contributors'
-    }).addTo(map);
-
-    // Layer group for food truck markers
-    var markersLayer = L.layerGroup().addTo(map);
-
-    // Load markers and bind popups
-    function loadMarkers() {
-      fetch('/api/get_markers')
-        .then(response => response.json())
-        .then(data => {
-          markersLayer.clearLayers();
-          data.forEach(function(marker) {
-            var popupContent = "Name: " + marker.name + "<br>Hours: " + marker.hours;
-            L.marker([marker.lat, marker.lng]).addTo(markersLayer)
-              .bindPopup(popupContent);
-          });
-        });
-    }
-
-    // Initial load of markers
-    loadMarkers();
-  </script>
-</body>
-</html>
+  <!-- Apply Filter Button -->
+  <button id="filterButton" class="w-full bg-yellow-50 text-red-700 font-bold p-2 rounded-full hover:bg-yellow-100 hover:scale-105 transition-all duration-300 focus:ring-2 focus:ring-yellow-300">
+    Apply Filter
+  </button>
+</div>
+      <script>
+        // Initialize the map
+        var map = L.map('map').setView([41.7508, -88.1535], 16);
+    
+        // Load OpenStreetMap tiles
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+          attribution: '&copy; OpenStreetMap contributors'
+        }).addTo(map);
+    
+        // Layer group for food truck markers
+        var markersLayer = L.layerGroup().addTo(map);
+        
+        // Store all markers data
+        var allMarkers = [];
+    
+        // Fetch all markers initially
+        function fetchAllMarkers() {
+          fetch('/api/get_markers')
+            .then(response => response.json())
+            .then(data => {
+              allMarkers = data;
+              displayMarkers();
+            })
+            .catch(error => console.error('Error fetching markers:', error));
+        }
+    
+        // Filter and display markers based on selected cuisine
+        function displayMarkers() {
+          markersLayer.clearLayers();
+          
+          var selectedCuisine = document.getElementById('cuisine').value;
+          
+          var filteredMarkers = allMarkers;
+          if (selectedCuisine) {
+            filteredMarkers = allMarkers.filter(marker => 
+              marker.cuisine && marker.cuisine.toLowerCase() === selectedCuisine.toLowerCase()
+            );
+          }
+          
+          filteredMarkers.forEach(function(marker) {
+            var popupContent = "Name: " + marker.name + "<br>Cuisine: " + (marker.cuisine || "Not specified");
+            L.marker([marker.lat, marker.lng]).addTo(markersLayer)
+              .bindPopup(popupContent);
+          });
+        }
+    
+        // Initial load of all markers
+        fetchAllMarkers();
+    
+        // Event listener for the filter button
+        document.getElementById('filterButton').addEventListener('click', function() {
+          displayMarkers();
+        });
+      </script>
+    </body>
+    </html>
