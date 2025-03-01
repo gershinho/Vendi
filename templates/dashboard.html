@@ -3,30 +3,76 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Illinois Map</title>
+  <title>Vendi Dashboard</title>
   <!-- Leaflet CSS -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-    integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
-    crossorigin=""/>
+    integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
   <!-- Leaflet JS -->
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
-    integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
-    crossorigin=""></script>
+    integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='output.css') }}">
   <style>
-    #map { height: 700px; width: 90%; }
-    #controls { margin-bottom: 10px; }
+    /* The map will fill the width of its container */
+    #map {
+      width: 100%;
+    }
   </style>
 </head>
-<body>
-  <h2>Illinois Map</h2>
-  <div id="controls">
-      <button id="addMarkerBtn">Add Marker</button>
-      <button id="deleteMarkerBtn">Delete My Marker</button>
-  </div>
-  <div id="map"></div>
-  <script>
+<body class="bg-yellow-50">
+  <!-- Generic Red-700 Header -->
+  <header class="bg-red-700 text-white p-4 flex justify-between font-bold text-xl">
+    <img src="/static/img/Vendi_logo_sml (1).png" class="h-6 w-auto">
+  </header>
   
-    var currentTruckId = {{truck_id}};
+
+  <!-- Outer Flex Container: 90% of viewport height -->
+  <div class="flex justify-between items-end mx-5 mt-5 mb-5" style="height:90vh;">
+    <!-- Left Info Box (30% width, full container height) -->
+    <div id="infoBlock" class="bg-red-700 p-4" style="width:30%; height:100%; border-radius:5rem; overflow:hidden;">
+        <p class="text-yellow-50 font-bold flex items-center justify-center" style="font-size: 3rem; line-height: 2.5rem;">
+          {{foodTruckName}}
+        </p>
+        <div class="flex text-red-700 bg-yellow-50 mt-8 mr-5 ml-5 h-5/6 overflow-auto" style="border-radius:5rem;">
+            <div>
+                <p>Number:</p>
+                <p>Email:</p>
+                <p>Cuisine:</p>
+                <p>Hours:</p>
+                <p>Visitors Today:</p>
+            </div>
+          </div>
+          
+        <!-- Center the bottom div using mx-auto -->
+        <button id="editBtn" class="text-red-700 font-bold flex items-center justify-center text-center bg-yellow-50 mt-2 mx-auto w-1/2
+        hover:bg-yellow-100 focus:outline-none focus:ring-2 focus:ring-yellow-50" style="height:2rem; border-radius:5rem;">
+            Edit
+        </button>
+      </div>
+      
+
+    <!-- Right Container (70% width, full height, flex column) -->
+    <div class="flex flex-col h-full p-4" style="width:70%;">
+      <!-- Header Text -->
+      <div>
+        <p class="font-bold text-red-700 text-2xl">Where will you be?</p>
+      </div>
+      <!-- Map and Controls Area: flex column to ensure the button remains visible -->
+      <div class="flex flex-col flex-grow mt-2 bg-red-700 p-6" style="border-radius:5rem; overflow:hidden;">
+        <!-- Map container fills available space -->
+        <div id="map" class="flex-grow p-5" style="border-radius:5rem; overflow:hidden;"></div>
+        <!-- Controls container remains at its natural height -->
+        <div id="controls" class="p-4">
+          <button class="bg-yellow-50 text-red-700 font-bold rounded-full py-2 px-6 
+                         hover:bg-yellow-100 focus:outline-none focus:ring-2 focus:ring-yellow-50"
+                  id="addMarkerBtn">Add Location</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    var currentTruckId = {{ truck_id }};
     var map = L.map('map').setView([41.7508, -88.1535], 16);
 
     // Load OpenStreetMap tiles
@@ -42,25 +88,21 @@
       fetch('/api/get_markers')
         .then(response => response.json())
         .then(data => {
-        
           data.forEach(function(marker) {
             var popupText = String(marker.id);
             if (marker.id === currentTruckId) {
               popupText += " (You)";
             }
             L.marker([marker.lat, marker.lng]).addTo(markersLayer)
-              .bindPopup(popupText)
-              
-              
+              .bindPopup(popupText);
           });
         });
     }
     loadMarkers();
 
-    document.getElementById("addMarkerBtn").addEventListener("click", function () {
+    document.getElementById("addMarkerBtn").addEventListener("click", function() {
       alert("Click on the map to place/update your marker.");
-      map.once("click", function (e) {
-   
+      map.once("click", function(e) {
         var lat = e.latlng.lat;
         var lng = e.latlng.lng;
         fetch('/api/update_marker', {
@@ -68,24 +110,19 @@
           headers: {
             'Content-Type': 'application/json'
           },
-          body: JSON.stringify({latitude: lat, longitude: lng})
+          body: JSON.stringify({ latitude: lat, longitude: lng })
         })
-        .then(response => response.json())
-        .then(data => {
-          if(data.success) {
-            userMarker = L.marker([lat, lng])
-              .addTo(markersLayer)
-              .bindPopup("Your Marker ({{truck_id}})")
-              .openPopup();
-           
-         
-          }
-        });
+          .then(response => response.json())
+          .then(data => {
+            if (data.success) {
+              userMarker = L.marker([lat, lng])
+                .addTo(markersLayer)
+                .bindPopup("Your Marker ({{truck_id}})")
+                .openPopup();
+            }
+          });
       });
     });
-
-    
-   
   </script>
 </body>
 </html>
