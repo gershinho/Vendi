@@ -17,6 +17,14 @@ def init_db():
                         password TEXT)''')
     conn.commit()
     conn.close()
+    
+""" def clear_all_trucks():
+    conn = sqlite3.connect(DATABASE)
+    cursor = conn.cursor()
+    cursor.execute("DELETE FROM trucks")
+    conn.commit()
+    conn.close()
+clear_all_trucks() """
 
 def insert_truck(name, cuisine, number, hours, email, password):
     conn = sqlite3.connect(DATABASE)

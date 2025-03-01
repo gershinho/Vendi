@@ -44,12 +44,13 @@
         .then(data => {
         
           data.forEach(function(marker) {
-            var popupText = marker.id;
+            var popupText = String(marker.id);
             if (marker.id === currentTruckId) {
               popupText += " (You)";
             }
             L.marker([marker.lat, marker.lng]).addTo(markersLayer)
               .bindPopup(popupText)
+              
               
           });
         });
