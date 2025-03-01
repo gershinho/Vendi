@@ -20,49 +20,63 @@
 <body>
   <h2>Illinois Map</h2>
   <div id="controls">
-      <button id="addMarkerBtn">Add Marker</button>
-      <button id="deleteMarkerBtn">Delete My Marker</button>
+      <button id="addMarkerBtn">Add/Change Marker</button>
   </div>
   <div id="map"></div>
   <script>
-  
     var currentTruckId = {{truck_id}};
     var map = L.map('map').setView([41.7508, -88.1535], 16);
-
+  
     // Load OpenStreetMap tiles
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       attribution: '&copy; OpenStreetMap contributors'
     }).addTo(map);
-
+  
     // Layer group for markers
     var markersLayer = L.layerGroup().addTo(map);
-
-    // Function to load markers from the server
+  
+    // Track the user marker globally
+    var userMarker = null;
+  
     function loadMarkers() {
       fetch('/api/get_markers')
         .then(response => response.json())
         .then(data => {
-        
+          // Optionally, clear the markersLayer first:
+          markersLayer.clearLayers();
           data.forEach(function(marker) {
-            var popupText = String(marker.id);
-            if (marker.id === currentTruckId) {
-              popupText += " (You)";
+            var popupContent = "Name: " + marker.name + "<br>Hours: " + marker.hours;
+            if (marker.id == currentTruckId) {
+              // For the current truck, assign the marker to userMarker so that future updates modify the existing one.
+              userMarker = L.marker([marker.lat, marker.lng]).addTo(markersLayer)
+                            .bindPopup(popupContent);
+            } else {
+              L.marker([marker.lat, marker.lng]).addTo(markersLayer)
+                            .bindPopup(popupContent);
             }
-            L.marker([marker.lat, marker.lng]).addTo(markersLayer)
-              .bindPopup(popupText)
-              
-              
           });
         });
     }
+  
     loadMarkers();
-
+  
     document.getElementById("addMarkerBtn").addEventListener("click", function () {
       alert("Click on the map to place/update your marker.");
       map.once("click", function (e) {
-   
         var lat = e.latlng.lat;
         var lng = e.latlng.lng;
+  
+        // If userMarker already exists, update its position; otherwise, create a new one.
+        if (userMarker) {
+          userMarker.setLatLng([lat, lng]);
+        } else {
+          var popupContent = "Name: " + "{{name}}" + "<br>Hours: " + "{{hours}}";
+          userMarker = L.marker([lat, lng]).addTo(markersLayer)
+            .bindPopup(popupContent)
+            .openPopup();
+        }
+  
+        // Update the marker location on the server
         fetch('/api/update_marker', {
           method: 'POST',
           headers: {
@@ -72,20 +86,13 @@
         })
         .then(response => response.json())
         .then(data => {
-          if(data.success) {
-            userMarker = L.marker([lat, lng])
-              .addTo(markersLayer)
-              .bindPopup("Your Marker ({{truck_id}})")
-              .openPopup();
-           
-         
+          if (data.success) {
+            console.log("Marker location updated successfully.");
           }
         });
       });
     });
-
-    
-   
   </script>
+  
 </body>
 </html>
